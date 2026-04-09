@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="container mt-4">
+    <h2 class="mb-3">📚 Issue New Book</h2>
+
+    <form id="transactionForm" method="POST" action="/transaction/create" class="row g-3 shadow p-4 rounded bg-light">
+        <!-- Member Selection -->
+        <div class="col-md-6">
+            <label for="member" class="form-label">Member <span class="text-danger">*</span> </label>
+            <select class="form-select" id="member" name="member" required >
+                <option value="" selected disabled>Select Member</option>
+            </select>
+        </div>
+
+        <!-- Book Selection -->
+        <div class="col-md-6">
+            <label for="book" class="form-label">Book <span class="text-danger">*</span> </label>
+            <select class="form-select" id="book" name="book" required disabled>
+                <option value="" selected disabled>Select Book</option>
+            </select>
+        </div>
+
+        <!-- Issue Date -->
+        <div class="col-md-6">
+            <label for="issue_date" class="form-label">Issue Date</label>
+            <input type="date" class="form-control" id="issue_date" name="issue_date">
+        </div>
+
+        <!-- Due Date -->
+        <div class="col-md-6">
+            <label for="due_date" class="form-label">Due Date</label>
+            <input type="date" class="form-control" id="due_date" name="due_date">
+        </div>
+
+        <!-- Outstanding Debt -->
+        <div class="col-md-6">
+            <label for="outstanding_debt" class="form-label">Current Outstanding Debt</label>
+            <input type="number" class="form-control" id="outstanding_debt" readonly>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                Issue Book
+            </button>
+        </div>
+    </form>
+    
+    <!-- Navigation Buttons -->
+    <div class="row justify-content-center mt-4">
+        <div class="col-lg-10 text-center">
+            <a href="/transaction/list" class="btn btn-secondary mx-2">
+                View Transactions
+            </a>
+            <a href="/member/list" class="btn btn-info mx-2">
+                View Members
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('transactionForm');
+    const memberSelect = document.getElementById('member');
+    const bookSelect = document.getElementById('book');
+    const submitBtn = document.getElementById('submitBtn');
+    const issueDateInput = document.getElementById('issue_date');
+    const dueDateInput = document.getElementById('due_date');
+
+    // Parse data from backend
+    const availableMembers = JSON.parse('{{ members|tojson|safe }}');
+    const availableBooks = JSON.parse('{{ books|tojson|safe }}');
+
+    // Set default dates
+    const today = new Date();
+    const dueDate = new Date();
+    dueDate.setDate(today.getDate() + 14);
+    
+    issueDateInput.value = today.toISOString().split('T')[0];
+    dueDateInput.value = dueDate.toISOString().split('T')[0];
+
+    // Populate member select
+    availableMembers.forEach(member => {
+        memberSelect.add(new Option(
+            `${member.first_name} ${member.last_name} (ID: ${member.member_id})`,
+            member.id
+        ));
+    });
+
+    memberSelect.addEventListener('change', function () {
+        bookSelect.disabled = false;
+        bookSelect.innerHTML = '<option value="" selected disabled>Select Book</option>';
+
+        const selectedMember = availableMembers.find(m => m.id === parseInt(this.value));
+        if (selectedMember) {
+            document.getElementById('outstanding_debt').value = selectedMember.outstanding_debt;
+        }
+
+        availableBooks.filter(book => book.stock > 0).forEach(book => {
+            bookSelect.add(new Option(
+                `${book.title} (Stock: ${book.stock})`,
+                book.id
+            ));
+        });
+    });
+
+    bookSelect.addEventListener('change', function () {
+        submitBtn.disabled = false;
+    });
+
+    // Allow manual date changes but enforce minimum 14 days for due date
+    issueDateInput.addEventListener('change', function() {
+        const newIssueDate = new Date(this.value);
+        const newDueDate = new Date(newIssueDate);
+        newDueDate.setDate(newIssueDate.getDate() + 14);
+        dueDateInput.value = newDueDate.toISOString().split('T')[0];
+    });
+
+    dueDateInput.addEventListener('change', function() {
+        const issueDate = new Date(issueDateInput.value);
+        const selectedDueDate = new Date(this.value);
+        const minDueDate = new Date(issueDate);
+        minDueDate.setDate(issueDate.getDate() + 14);
+        
+        if (selectedDueDate < minDueDate) {
+            alert('Due date must be at least 14 days after issue date');
+            this.value = minDueDate.toISOString().split('T')[0];
+        }
+    });
+
+    
+
+    document.getElementById("transactionForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    let formData = new FormData(this);
+
+    fetch("/transaction/create", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: "Success!",
+                text: data.message,
+                icon: "success",
+                showCancelButton: true,
+                confirmButtonText: "View Transactions",
+                cancelButtonText: "Issue Another Book",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/transaction/list";
+                } else {
+                    // Reset only the book selection and submit button
+                    document.getElementById("book").value = "";
+                    document.getElementById("submitBtn").disabled = true;
+                }
+            });
+        } else {
+            Swal.fire({
+                title: "Error!",
+                text: data.message,
+                icon: "error",
+                confirmButtonText: "Try Again"
+            });
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        Swal.fire({
+            title: "Error!",
+            text: "An error occurred while processing the transaction",
+            icon: "error",
+            confirmButtonText: "Try Again"
+        });
+    });
+});
+
+});
+</script>
+{% endblock %}

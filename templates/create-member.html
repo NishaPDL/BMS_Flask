@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="container mt-4">
+    <h2 class="mb-3">➕ Add New Member</h2>
+
+    <form id="memberForm" class="row g-3 shadow p-4 rounded bg-light">
+        <!-- Name Fields -->
+        <div class="col-md-6">
+            <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="first_name" name="first_name" required>
+        </div>
+        <div class="col-md-6">
+            <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="last_name" name="last_name" required>
+        </div>
+
+        <!-- Email -->
+        <div class="col-md-6">
+            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="col-md-6">
+            <label for="phone" class="form-label">Phone <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="phone" name="phone" required pattern="[0-9]{10}"
+                title="Phone number must be exactly 10 digits" maxlength="10"
+                inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+
+        <!-- Address Fields -->
+        <div class="col-md-6">
+            <label for="locality" class="form-label">Locality</label>
+            <textarea class="form-control" id="locality" name="locality" rows="2"></textarea>
+        </div>
+        <div class="col-md-4">
+            <label for="city" class="form-label">City</label>
+            <input type="text" class="form-control" id="city" name="city">
+        </div>
+        <div class="col-md-4">
+            <label for="state" class="form-label">State<span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="state" name="state" required pattern="[A-Za-z ]+"
+                title="State name must contain only alphabets and spaces">
+        </div>
+
+        <!-- Pincode -->
+        <div class="col-md-4">
+            <label for="pincode" class="form-label">Pincode <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="pincode" name="pincode" required pattern="[0-9]{6}"
+                title="Pincode must be exactly 6 digits" maxlength="6"
+                inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+
+        <!-- Gender Selection -->
+        <div class="col-md-6">
+            <label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
+            <select class="form-select" id="gender" name="gender" required>
+                <option value="" selected disabled>Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <!-- DOB & Age -->
+        <div class="col-md-6">
+            <label for="dob" class="form-label">Date of Birth <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="dob" name="dob" required>
+        </div>
+        <div class="col-md-6 d-none" id="age_container">
+            <label for="age" class="form-label">Age</label>
+            <input type="number" class="form-control" id="age" name="age" readonly>
+        </div>
+
+        <!-- Member ID (Auto-Generated, Hidden Initially) -->
+        <div class="col-md-6 d-none" id="member_id_container">
+            <label for="member_id" class="form-label">Member ID</label>
+            <input type="text" class="form-control" id="member_id" name="member_id" readonly>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-success"><i class="bi bi-plus-circle"></i> Add Member</button>
+        </div>
+    </form>
+</div>
+
+<!-- SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function calculateAgeAndMemberID() {
+        let firstName = document.getElementById("first_name").value.trim();
+        let lastName = document.getElementById("last_name").value.trim();
+        let gender = document.getElementById("gender").value;
+        let dob = document.getElementById("dob").value;
+        let phone = document.getElementById("phone").value.trim();
+
+        if (!dob) return;
+
+        // Calculate Age
+        let dobDate = new Date(dob);
+        let today = new Date();
+        let age = today.getFullYear() - dobDate.getFullYear();
+        let monthDiff = today.getMonth() - dobDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dobDate.getDate())) {
+            age--;
+        }
+        document.getElementById("age").value = age;
+        document.getElementById("age_container").classList.remove("d-none");
+
+        // Generate Member ID
+        if (firstName && lastName && gender && phone.length === 10) {
+            let memberID = firstName[0].toUpperCase() + lastName[0].toUpperCase() + gender[0].toUpperCase() + phone.slice(-2);
+            document.getElementById("member_id").value = memberID;
+            document.getElementById("member_id_container").classList.remove("d-none");
+        }
+    }
+
+    document.getElementById("dob").addEventListener("change", calculateAgeAndMemberID);
+    document.getElementById("first_name").addEventListener("input", calculateAgeAndMemberID);
+    document.getElementById("last_name").addEventListener("input", calculateAgeAndMemberID);
+    document.getElementById("gender").addEventListener("change", calculateAgeAndMemberID);
+    document.getElementById("phone").addEventListener("input", calculateAgeAndMemberID);
+
+    document.getElementById("memberForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        let formData = new FormData(this);
+
+        fetch("/member/create", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message.includes("successfully created")) {
+                Swal.fire({
+                    title: "Success!",
+                    text: data.message,
+                    icon: "success",
+                    showCancelButton: true,
+                    confirmButtonText: "Go to Members",
+                    cancelButtonText: "Add Another",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "/member/list";  
+                    } else {
+                        document.getElementById("member_id_container").classList.add("d-none");
+                        document.getElementById("age_container").classList.add("d-none");
+                        document.getElementById("member_id").value = "";
+                        document.getElementById("age").value = "";
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: "Error!",
+                    text: data.message,
+                    icon: "error",
+                    confirmButtonText: "Try Again"
+                });
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
+
+</script>
+
+{% endblock %}
