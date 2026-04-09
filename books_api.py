@@ -1,4 +1,3 @@
-import requests
 from models import Book
 from config.config import db
 

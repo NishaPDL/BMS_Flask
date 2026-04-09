@@ -75,7 +75,7 @@ BMS_Flask/
 
 1. Clone the repository:
     ```sh
-    git clone 
+    git clone https://github.com/NishaPDL/BMS_Flask
     cd LMS_Flask-Main
     ```
 
@@ -162,7 +162,7 @@ The database consists of the following tables:
 - **Return Book**: Allows the user to record the return of a borrowed book.
 ![Return Book](static/returnbook.png)
 - **View Transactions**: Allows the user to view all transactions, including borrow and return records.
-![View Transactions](static/browsetransaction.png)
+![View Transactions]
 - **Generate Invoice**: Allows the user to generate an invoice for a member showing the books borrowed and their due dates.
 ![Issue Invoice](static/issuetrans.png)
 ![Return Invoice](static/returntrans.png)
