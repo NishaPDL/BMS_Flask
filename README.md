@@ -129,20 +129,20 @@ The database consists of the following tables:
 ### Books
 
 - **Add Book**: Allows the user to add a new book to the library.
-![Import Books](static/importbook.png)
+
 - **Edit Book**: Allows the user to edit the details of an existing book.
-![Edit Books](static/editbooks.png)
+
 - **Delete Book**: Allows the user to delete a book from the library.
 
 - **View Book Details**: Allows the user to view detailed information about a book.
-![View Book List](static/browsebook.png)
+
 
 ### Members
 
 - **Add Member**: Allows the user to add a new member to the library.
-![Add Member](static/addmember.png)
+
 - **Edit Member**: Allows the user to edit the details of an existing member.
-![Edit Member](static/editmember.png)
+
 - **Delete Member**: Allows the user to delete a member from the library.
 
 - **Library Card**: Allows the user to print a library card for a member.
@@ -153,19 +153,8 @@ The database consists of the following tables:
 ![Library Card Print](static/printcard.png)
 
 - **View Member Details**: Allows the user to view detailed information about a member.
-![View Member List](static/members.png)
 
-### Transactions
 
-- **Borrow Book**: Allows the user to record the borrowing of a book by a member.
-![Borrow Book](static/borrowbook.png)
-- **Return Book**: Allows the user to record the return of a borrowed book.
-![Return Book](static/returnbook.png)
-- **View Transactions**: Allows the user to view all transactions, including borrow and return records.
-![View Transactions]
-- **Generate Invoice**: Allows the user to generate an invoice for a member showing the books borrowed and their due dates.
-![Issue Invoice](static/issuetrans.png)
-![Return Invoice](static/returntrans.png)
 
 ## Future Enhancements 🚀
 * **User Authentication:** Implement user authentication and authorization for secure access to the system.
